@@ -6,11 +6,13 @@ import com.aman.AirBnb.AirBnb.Dto.GuestDTO;
 import com.aman.AirBnb.AirBnb.Entities.*;
 import com.aman.AirBnb.AirBnb.Enums.BookingStatus;
 import com.aman.AirBnb.AirBnb.Exceptions.ResourceNotFoundException;
+import com.aman.AirBnb.AirBnb.Exceptions.UnAuthorisedException;
 import com.aman.AirBnb.AirBnb.Repositories.*;
 import com.aman.AirBnb.AirBnb.Service.Interfaces.BookingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -62,7 +64,6 @@ public class BookingServiceImpl implements BookingService {
         inventoryRepository.saveAll(inventoryList);
 
         // Create the Booking
-        // TODO: calculate dynamic amount
 
         BookingEntity booking = BookingEntity.builder()
                 .bookingStatus(BookingStatus.RESERVED)
@@ -86,6 +87,12 @@ public class BookingServiceImpl implements BookingService {
 
         BookingEntity booking = bookingRepository.findById(bookingId).orElseThrow(() ->
                 new ResourceNotFoundException("Booking not found with id: "+bookingId));
+
+        UserEntity user = getCurrentUser();
+
+        if (!user.equals(booking.getUser())) {
+            throw new UnAuthorisedException("Booking does not belong to this user with id: "+user.getId());
+        }
 
         if (hasBookingExpired(booking)) {
             throw new IllegalStateException("Booking has already expired");
@@ -112,8 +119,6 @@ public class BookingServiceImpl implements BookingService {
     }
 
     public UserEntity getCurrentUser() {
-        UserEntity user = new UserEntity();
-        user.setId(1L); // TODO: REMOVE DUMMY USER
-        return user;
+        return (UserEntity) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 }

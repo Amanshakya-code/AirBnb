@@ -49,6 +49,6 @@ public class HotelEntity {
     @JsonIgnore
     private List<RoomEntity> rooms;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
     private UserEntity owner;
 }
