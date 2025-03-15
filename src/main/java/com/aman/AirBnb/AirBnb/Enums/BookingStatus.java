@@ -2,6 +2,9 @@ package com.aman.AirBnb.AirBnb.Enums;
 
 public enum BookingStatus {
     RESERVED,
+    GUESTS_ADDED,
+    PAYMENTS_PENDING,
     CONFIRMED,
-    PENDING
+    CANCELLED,
+    EXPIRED
 }

@@ -2,11 +2,11 @@ package com.aman.AirBnb.AirBnb.Entities;
 
 import com.aman.AirBnb.AirBnb.Enums.BookingStatus;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -14,6 +14,9 @@ import java.util.Set;
 @Entity
 @Getter
 @Setter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "Booking")
 public class BookingEntity {
 
@@ -30,14 +33,11 @@ public class BookingEntity {
     private RoomEntity room;
 
     @Column(nullable = false)
-    private Integer roomCount;
+    private Integer roomsCount;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id",nullable = false)
     private UserEntity user;
-
-    @Column(nullable = false)
-    private Integer roomsCount;
 
     @Column(nullable = false)
     private LocalDate checkInDate;
@@ -52,10 +52,6 @@ public class BookingEntity {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "payment_id")
-    private PaymentEntity payment;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private BookingStatus bookingStatus;
@@ -64,5 +60,8 @@ public class BookingEntity {
     @JoinTable(name = "booking_guest",joinColumns = @JoinColumn(name ="booking_id"),
     inverseJoinColumns = @JoinColumn(name = "guest_id"))
     private Set<GuestEntity> guests;
+
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal amount;
 
 }

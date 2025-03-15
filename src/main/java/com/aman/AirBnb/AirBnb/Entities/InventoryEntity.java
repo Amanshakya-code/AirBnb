@@ -38,6 +38,9 @@ public class InventoryEntity {
     private Integer bookCount;
 
     @Column(nullable = false,columnDefinition = "INTEGER DEFAULT 0")
+    private Integer reservedCount;
+
+    @Column(nullable = false,columnDefinition = "INTEGER DEFAULT 0")
     private Integer totalCount;
 
     @Column(nullable = false,precision = 5,scale = 2)
