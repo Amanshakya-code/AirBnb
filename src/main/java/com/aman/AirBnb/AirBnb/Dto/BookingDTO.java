@@ -3,6 +3,7 @@ package com.aman.AirBnb.AirBnb.Dto;
 import com.aman.AirBnb.AirBnb.Enums.BookingStatus;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -17,4 +18,5 @@ public class BookingDTO {
     private LocalDateTime updatedAt;
     private BookingStatus bookingStatus;
     private Set<GuestDTO> guests;
+    private BigDecimal amount;
 }
