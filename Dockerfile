@@ -16,7 +16,7 @@ RUN chmod +x mvnw
 RUN ./mvnw clean package -DskipTests
 
 # Copy the built JAR file
-COPY target/*.jar app.jar
+RUN cp target/*.jar app.jar
 
 # Expose the application port
 EXPOSE 8080
