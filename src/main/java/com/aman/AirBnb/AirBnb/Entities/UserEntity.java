@@ -1,5 +1,6 @@
 package com.aman.AirBnb.AirBnb.Entities;
 
+import com.aman.AirBnb.AirBnb.Enums.Gender;
 import com.aman.AirBnb.AirBnb.Enums.Role;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -8,6 +9,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -31,6 +33,11 @@ public class UserEntity implements UserDetails {
     private String password;
 
     private String name;
+
+    private LocalDate dateOfBirth;
+
+    @Enumerated(EnumType.STRING)
+    private Gender gender;
 
     @ElementCollection(fetch = FetchType.EAGER) //JPA will create new table
     @Enumerated(EnumType.STRING)

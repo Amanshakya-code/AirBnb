@@ -20,6 +20,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
+
+import static com.aman.AirBnb.AirBnb.Utils.AppUtils.getCurrentUser;
 
 @Service
 @Slf4j
@@ -131,5 +134,17 @@ public class HotelServiceImpl implements HotelService {
                 .toList();
 
         return new HotelInfoDto(modelMapper.map(hotel, HotelDTO.class), rooms);
+    }
+
+    @Override
+    public List<HotelDTO> getAllHotels() {
+        UserEntity user = getCurrentUser();
+        log.info("Getting all hotels for the admin user with ID: {}", user.getId());
+        List<HotelEntity> hotels = hotelRepository.findByOwner(user);
+
+        return hotels
+                .stream()
+                .map((element) -> modelMapper.map(element, HotelDTO.class))
+                .collect(Collectors.toList());
     }
 }

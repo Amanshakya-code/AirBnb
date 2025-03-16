@@ -3,6 +3,7 @@ package com.aman.AirBnb.AirBnb.Service;
 import com.aman.AirBnb.AirBnb.Dto.BookingDTO;
 import com.aman.AirBnb.AirBnb.Dto.BookingRequest;
 import com.aman.AirBnb.AirBnb.Dto.GuestDTO;
+import com.aman.AirBnb.AirBnb.Dto.HotelReportDTO;
 import com.aman.AirBnb.AirBnb.Entities.*;
 import com.aman.AirBnb.AirBnb.Enums.BookingStatus;
 import com.aman.AirBnb.AirBnb.Exceptions.ResourceNotFoundException;
@@ -20,14 +21,21 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import static com.aman.AirBnb.AirBnb.Utils.AppUtils.getCurrentUser;
 
 @Service
 @Slf4j
@@ -228,11 +236,66 @@ public class BookingServiceImpl implements BookingService {
         return booking.getBookingStatus();
     }
 
+    @Override
+    public List<BookingDTO> getAllBookingsByHotelId(Long hotelId) {
+        HotelEntity hotel = hotelRepository.findById(hotelId).orElseThrow(() -> new ResourceNotFoundException("Hotel not " +
+                "found with ID: "+hotelId));
+        UserEntity user = getCurrentUser();
+
+        log.info("Getting all booking for the hotel with ID: {}", hotelId);
+
+        if(!user.equals(hotel.getOwner())) throw new AccessDeniedException("You are not the owner of hotel with id: "+hotelId);
+
+        List<BookingEntity> bookings = bookingRepository.findByHotel(hotel);
+
+        return bookings.stream()
+                .map((element) -> modelMapper.map(element, BookingDTO.class))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public HotelReportDTO getHotelReport(Long hotelId, LocalDate startDate, LocalDate endDate) {
+        HotelEntity hotel = hotelRepository.findById(hotelId).orElseThrow(() -> new ResourceNotFoundException("Hotel not " +
+                "found with ID: "+hotelId));
+        UserEntity user = getCurrentUser();
+
+        log.info("Generating report for hotel with ID: {}", hotelId);
+
+        if(!user.equals(hotel.getOwner())) throw new AccessDeniedException("You are not the owner of hotel with id: "+hotelId);
+
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate.atTime(LocalTime.MAX);
+
+        List<BookingEntity> bookings = bookingRepository.findByHotelAndCreatedAtBetween(hotel, startDateTime, endDateTime);
+
+        Long totalConfirmedBookings = bookings
+                .stream()
+                .filter(booking -> booking.getBookingStatus() == BookingStatus.CONFIRMED)
+                .count();
+
+        BigDecimal totalRevenueOfConfirmedBookings = bookings.stream()
+                .filter(booking -> booking.getBookingStatus() == BookingStatus.CONFIRMED)
+                .map(BookingEntity::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal avgRevenue = totalConfirmedBookings == 0 ? BigDecimal.ZERO :
+                totalRevenueOfConfirmedBookings.divide(BigDecimal.valueOf(totalConfirmedBookings), RoundingMode.HALF_UP);
+
+        return new HotelReportDTO(totalConfirmedBookings, totalRevenueOfConfirmedBookings, avgRevenue);
+    }
+
+    @Override
+    public List<BookingDTO> getMyBookings() {
+        UserEntity user = getCurrentUser();
+
+        return bookingRepository.findByUser(user)
+                .stream().
+                map((element) -> modelMapper.map(element, BookingDTO.class))
+                .collect(Collectors.toList());
+    }
+
     public boolean hasBookingExpired(BookingEntity booking) {
         return booking.getCreatedAt().plusMinutes(10).isBefore(LocalDateTime.now());
     }
 
-    public UserEntity getCurrentUser() {
-        return (UserEntity) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-    }
 }

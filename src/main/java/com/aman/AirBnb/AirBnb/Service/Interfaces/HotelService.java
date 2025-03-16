@@ -3,6 +3,8 @@ package com.aman.AirBnb.AirBnb.Service.Interfaces;
 import com.aman.AirBnb.AirBnb.Dto.HotelDTO;
 import com.aman.AirBnb.AirBnb.Dto.HotelInfoDto;
 
+import java.util.List;
+
 public interface HotelService {
     HotelDTO createNewHotel(HotelDTO hotelDto);
     HotelDTO getHotelById(Long id);
@@ -10,4 +12,5 @@ public interface HotelService {
     void deleteHotelById(Long id);
     void activateHotel(Long hotelId);
     HotelInfoDto getHotelInfoById(Long hotelId);
+    List<HotelDTO> getAllHotels();
 }
